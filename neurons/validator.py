@@ -1,7 +1,6 @@
 # The MIT License (MIT)
 # Copyright © 2023 Yuma Rao
-# TODO(developer): Set your name
-# Copyright © 2023 <your name>
+# Copyright © 2026 Epic Tensor
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -23,11 +22,8 @@ import time
 # Bittensor
 import bittensor as bt
 
-# import base validator class which takes care of most of the boilerplate
-from CookingTAO.base.validator import BaseValidatorNeuron
-
-# Bittensor Validator Template:
 from CookingTAO.validator import forward
+from CookingTAO.base.validator import BaseValidatorNeuron
 
 
 class Validator(BaseValidatorNeuron):
@@ -46,23 +42,25 @@ class Validator(BaseValidatorNeuron):
         self.load_state()
 
         # TODO(developer): Anything specific to your use case you can do here
+        self.api_url = self.config.api_url
 
     async def forward(self):
         """
         Validator forward pass. Consists of:
-        - Generating the query
-        - Querying the miners
-        - Getting the responses
-        - Rewarding the miners
+        - Validating miners performance
+        - Calculate miner rewards
         - Updating the scores
         """
-        # TODO(developer): Rewrite this function based on your protocol definition.
         return await forward(self)
+    
+    def get_emission(self):
+        emission = self.metagraph.E[self.uid]
+        bt.logging.info(f"Emissions: {emission}")
 
 
 # The main function parses the configuration and runs the validator.
 if __name__ == "__main__":
     with Validator() as validator:
         while True:
-            bt.logging.info(f"Validator running... {time.time()}")
-            time.sleep(5)
+            validator.get_emission()
+            time.sleep(100)

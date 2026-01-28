@@ -85,7 +85,7 @@ def add_args(cls, parser):
         "--neuron.epoch_length",
         type=int,
         help="The default epoch length (how often we set weights, measured in 12 second blocks).",
-        default=100,
+        default=361,
     )
 
     parser.add_argument(
@@ -158,14 +158,14 @@ def add_miner_args(cls, parser):
     parser.add_argument(
         "--wandb.project_name",
         type=str,
-        default="template-miners",
+        default="cookingtao-miners",
         help="Wandb project to log to.",
     )
 
     parser.add_argument(
         "--wandb.entity",
         type=str,
-        default="opentensor-dev",
+        default="cookingtao",
         help="Wandb entity to log to.",
     )
 
@@ -218,11 +218,11 @@ def add_validator_args(cls, parser):
     parser.add_argument(
         "--neuron.axon_off",
         "--axon_off",
-        action="store_true",
+        action="store_false",
         # Note: the validator needs to serve an Axon with their IP or they may
         #   be blacklisted by the firewall of serving peers on the network.
         help="Set this flag to not attempt to serve an Axon.",
-        default=False,
+        default=True,
     )
 
     parser.add_argument(
@@ -236,14 +236,21 @@ def add_validator_args(cls, parser):
         "--wandb.project_name",
         type=str,
         help="The name of the project where you are sending the new run.",
-        default="template-validators",
+        default="cookingtao-validators",
     )
 
     parser.add_argument(
         "--wandb.entity",
         type=str,
         help="The name of the project where you are sending the new run.",
-        default="opentensor-dev",
+        default="cookingtao",
+    )
+
+    parser.add_argument(
+        "--api-url",
+        type=str,
+        help="Platform API Endpoint",
+        default="http://api.cookingtao.com",
     )
 
 

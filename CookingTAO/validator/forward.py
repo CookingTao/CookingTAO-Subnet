@@ -1,7 +1,6 @@
 # The MIT License (MIT)
 # Copyright © 2023 Yuma Rao
-# TODO(developer): Set your name
-# Copyright © 2023 <your name>
+# Copyright © 2026 Epic Tensor
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -20,44 +19,42 @@
 import time
 import bittensor as bt
 
-from CookingTAO.protocol import Dummy
+from CookingTAO.utils.uids import get_all_uids
+from CookingTAO.utils.misc import ttl_get_block
 from CookingTAO.validator.reward import get_rewards
-from CookingTAO.utils.uids import get_random_uids
 
+def sleep_time(self) -> int:
+    """Calculate the time to sleep for the next validation step."""
+    current_block = ttl_get_block(self)
+    cycle_length = self.config.neuron.epoch_length
+    
+    next_cycle_block = ((current_block // cycle_length) + 1) * cycle_length
+    blocks_to_wait = next_cycle_block - current_block
+    
+    bt.logging.debug(f"Sleeping for {blocks_to_wait} blocks to wait for the next validation step.")
+    return blocks_to_wait * 12
 
 async def forward(self):
     """
-    The forward function is called by the validator every time step.
+    Main validation loop called every step.
 
-    It is responsible for querying the network and scoring the responses.
+    This function:
+    1. Retrieves all miner UIDs
+    2. Calculates rewards based on miner code performance across subnets
+    3. Updates miner scores
+    4. Sets network weights
+    5. Saves validator state
+    6. Waits for next step
 
     Args:
-        self (:obj:`bittensor.neuron.Neuron`): The neuron object which contains all the necessary state for the validator.
-
+        self: The validator neuron instance containing configuration and state.
     """
-    # TODO(developer): Define how the validator selects a miner to query, how often, etc.
-    # get_random_uids is an example method, but you can replace it with your own.
-    miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
+    miner_uids = get_all_uids(self)
 
-    # The dendrite client queries the network.
-    responses = await self.dendrite(
-        # Send the query to selected miner axons in the network.
-        axons=[self.metagraph.axons[uid] for uid in miner_uids],
-        # Construct a dummy query. This simply contains a single integer.
-        synapse=Dummy(dummy_input=self.step),
-        # All responses have the deserialize function called on them before returning.
-        # You are encouraged to define your own deserialization function.
-        deserialize=True,
-    )
+    rewards = get_rewards(self)
 
-    # Log the results for monitoring purposes.
-    bt.logging.info(f"Received responses: {responses}")
-
-    # TODO(developer): Define how the validator scores responses.
-    # Adjust the scores based on responses from miners.
-    rewards = get_rewards(self, query=self.step, responses=responses)
-
-    bt.logging.info(f"Scored responses: {rewards}")
-    # Update the scores based on the rewards. You may want to define your own update_scores function for custom behavior.
+    bt.logging.info(f"Rewards: {rewards}")
+    # Update the scores based on the rewards.
     self.update_scores(rewards, miner_uids)
-    time.sleep(5)
+    
+    time.sleep(sleep_time(self))
