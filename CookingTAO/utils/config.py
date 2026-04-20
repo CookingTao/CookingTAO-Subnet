@@ -250,7 +250,7 @@ def add_validator_args(cls, parser):
         "--api-url",
         type=str,
         help="Platform API Endpoint",
-        default="http://api.cookingtao.com",
+        default="https://api.cookingtao.com/api/v1/validator",
     )
 
 
